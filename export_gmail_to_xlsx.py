@@ -1,13 +1,28 @@
 import pandas as pd
 from gmail_utils import get_gmail_service
 
-def export_labels_and_inbox_xlsx(service, xlsx_path="gmail_labels_inbox.xlsx", inbox_max=2000):
+def fetch_all_inbox_messages(service):
+    # Colectează toate mesajele din Inbox, nu doar primele 500
+    all_msgs = []
+    page_token = None
+    while True:
+        response = service.users().messages().list(
+            userId='me', labelIds=['INBOX'], maxResults=500, pageToken=page_token
+        ).execute()
+        messages = response.get('messages', [])
+        all_msgs.extend(messages)
+        page_token = response.get('nextPageToken')
+        if not page_token:
+            break
+    return all_msgs
+
+def export_labels_and_inbox_xlsx(service, xlsx_path="gmail_labels_inbox.xlsx"):
     # Export labels (Sheet: Labels)
     labels = service.users().labels().list(userId='me').execute().get('labels', [])
     df_labels = pd.DataFrame([{"Label": l["name"], "ID": l["id"]} for l in labels if l.get("type") == "user"])
 
-    # Export inbox (Sheet: Inbox)
-    messages = service.users().messages().list(userId='me', labelIds=['INBOX'], maxResults=inbox_max).execute().get('messages', [])
+    # Export inbox (Sheet: Inbox) - toate mesajele
+    messages = fetch_all_inbox_messages(service)
     emails = []
     for m in messages:
         msg = service.users().messages().get(userId='me', id=m['id'], format='metadata', metadataHeaders=['From','Subject','Date']).execute()

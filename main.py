@@ -16,11 +16,10 @@ from move_from_xlsx import move_emails_from_xlsx
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 load_dotenv()
 
-# --- Config ---
 FLASK_PORT = int(os.getenv("FLASK_PORT", 5099))
 GRADIO_PORT = int(os.getenv("GRADIO_PORT", 7070))
 NGROK_TOKEN = os.getenv("NGROK_TOKEN")
-NGROK_HOSTNAME = os.getenv("NGROK_HOSTNAME")  # ex: stable-guided-buck.ngrok-free.app
+NGROK_HOSTNAME = os.getenv("NGROK_HOSTNAME")
 CREDENTIALS_FILE = 'credentials.json'
 TOKEN_FILE = 'token.pickle'
 SCOPES = ['https://www.googleapis.com/auth/gmail.modify']
@@ -100,7 +99,7 @@ def export_xlsx_ui(inbox_max):
     if not service:
         return None, "Eroare: nu ești autentificat Gmail!"
     path = "gmail_labels_inbox.xlsx"
-    export_labels_and_inbox_xlsx(service, path, inbox_max)
+    export_labels_and_inbox_xlsx(service, path, int(inbox_max))
     return path, f"Export XLSX gata: {path}"
 
 def move_xlsx_ui(file):
